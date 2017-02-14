@@ -1,17 +1,29 @@
 #!/usr/bin/env python
 
+
+DESCRIPTION = """
+Wrapper for pip, allows passing github token to install from private repositories.
+It parses requirements file and inserts auth tokens to all URLs refering to github.
+E.g.:
+git+ssh://git@github.com:test/example.git
+becomes
+https://TOKEN@github.com/test/example.git
+
+Designed to work both with Python2 and Python3.
 """
-Designed to run both from Python2 and Python3.
-"""
+
 
 from tempfile import NamedTemporaryFile
 from subprocess import check_call
+from distutils.spawn import find_executable
 import argparse
 import logging
 import re
 import os
 
 LOG_FMT = "%(asctime)s {prog}(%(process)s):%(levelname)s:%(funcName)s() %(message)s"
+DEFAULT_PIP = "pip"
+DEFAULT_VAR = 'GITHUB_DEPLOY_TOKEN'
 
 
 class UsageError(Exception):
@@ -26,6 +38,9 @@ def get_token(token_name):
 
 
 def pip_token(req_path, file_prefix, pip_path, pip_args, log, token, delete=False):
+    if not find_executable(pip_path):
+        raise UsageError("cannot find executable %s" % pip_path)
+
     processed = []
     with open(req_path, 'rt') as fd:
         for linenum, rawline in enumerate(fd.readlines(), 1):
@@ -56,19 +71,24 @@ def pip_token(req_path, file_prefix, pip_path, pip_args, log, token, delete=Fals
 
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-r', '--requirement')
-    parser.add_argument('--token-name', default='GITHUB_DEPLOY_TOKEN')
-    parser.add_argument('--pip-path', default='pip')
+    parser = argparse.ArgumentParser(
+        description=DESCRIPTION,
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
+    parser.add_argument('-r', '--requirement', required=True)
+    parser.add_argument('--token-var', default=DEFAULT_VAR,
+                        help="env var with token")
+    parser.add_argument('--pip-path', default=DEFAULT_PIP,
+                        help="path to pip, e.g., pip2.7")
     args, pip_args = parser.parse_known_args()
 
     logging.basicConfig(
         level=logging.DEBUG, format=LOG_FMT.format(prog=parser.prog))
     log = logging.getLogger(parser.prog)
-    log.debug("argumens: %s %s", args, pip_args)
+    log.debug("arguments: %s %s", args, pip_args)
 
     try:
-        token = get_token(args.token_name)
+        token = get_token(args.token_var)
         pip_token(req_path=args.requirement,
                   pip_path=args.pip_path,
                   pip_args=pip_args,
@@ -76,7 +96,8 @@ def main():
                   file_prefix="%s_" % parser.prog,
                   token=token)
     except UsageError as e:
-        raise SystemExit("Error: %s" % e)
+        log.error("Error: %s" % e)
+        raise SystemExit("exiting due to errors")
 
 
 if __name__ == '__main__':
