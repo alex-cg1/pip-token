@@ -38,7 +38,7 @@ def get_token(token_name):
     return token
 
 
-def pip_token(req_path, file_prefix, pip_path, pip_args, log, token, delete=False):
+def pip_token(req_path, file_prefix, pip_path, pip_args, log, token, delete=True):
     if not find_executable(pip_path):
         raise UsageError("cannot find executable %s" % pip_path)
 
