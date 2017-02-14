@@ -35,6 +35,7 @@ def get_token(token_name):
     if not token:
         raise UsageError(
             "no ENV variable {} is present in environment".format(token_name))
+    return token
 
 
 def pip_token(req_path, file_prefix, pip_path, pip_args, log, token, delete=False):
