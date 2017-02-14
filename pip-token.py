@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """
 Designed to run both from Python2 and Python3.
 """
