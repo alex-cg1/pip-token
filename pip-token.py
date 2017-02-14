@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """
 Designed to run both from Python2 and Python3.
 """
@@ -45,6 +43,7 @@ def pip_token(req_path, file_prefix, pip_path, pip_args, log, token, delete=Fals
             processed.append(newurl)
 
     with NamedTemporaryFile(prefix=file_prefix, suffix='.txt', mode='w+t', delete=delete) as fd:
+        log.debug("writing to \"%s\"", fd.name)
         for line in processed:
             fd.write(line + '\n')
         fd.flush()
