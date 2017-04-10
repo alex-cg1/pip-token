@@ -46,7 +46,7 @@ def pip_token(req_path, file_prefix, pip_path, pip_args, log, token, delete=True
     with open(req_path, 'rt') as fd:
         for linenum, rawline in enumerate(fd.readlines(), 1):
             rawline = rawline.strip('\n')
-            if rawline.find('github') < 0:
+            if rawline.find('github') < 0 or rawline.startswith('#'):
                 processed.append(rawline)
                 continue
 
@@ -77,6 +77,8 @@ def main():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     parser.add_argument('-r', '--requirement', required=True)
+    parser.add_argument('--token', default=DEFAULT_VAR,
+                        help="specify token")
     parser.add_argument('--token-var', default=DEFAULT_VAR,
                         help="env var with token")
     parser.add_argument('--pip-path', default=DEFAULT_PIP,
